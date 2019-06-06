@@ -1,0 +1,92 @@
+---
+output: 
+  pdf_document:
+    fig_crop: no
+bibliography: bibliography.bib
+fontsize: 11pt
+documentclass: article
+geometry: margin=2cm
+header-includes:
+  - \usepackage[brazil, english, portuguese]{babel}
+  - \usepackage[utf8]{inputenc}
+  - \usepackage[T1]{fontenc}
+  - \usepackage[fixlanguage]{babelbib}
+  - \usepackage{times}
+
+  - \usepackage{graphicx}
+  - \usepackage{wrapfig}
+  - \usepackage{pdfpages}
+  
+  - \usepackage{amsfonts}
+  - \usepackage{amssymb}
+  - \usepackage{amsmath}
+  
+  - \usepackage{fancyhdr}
+  - \usepackage{subcaption}
+  - \usepackage{booktabs}
+  - \usepackage{caption}
+  - \usepackage{float}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = ESCOLHA, 
+  message = FALSE,
+  warning = FALSE,
+  tidy.opts = list(width.cutoff = 60),
+  tidy = TRUE
+  )
+options(
+  OutDec = ",", 
+  knitr.table.format = "latex", 
+  xtable.comment = FALSE
+  )
+```
+
+```{r lib}
+
+```
+
+
+
+\begin{titlepage} 
+
+\begin{center} 
+{\large Universidade Estadual de Campinas}\\[0.2cm] 
+{\large Instituto de Matemática, Estatística e Computação Científica}\\[0.2cm] 
+{\large Departamento de Estatística - MEXXX}\\[4cm]
+
+{\bf \huge Título: }\\
+{\bf \Large Subtítulo}\\[6cm]
+
+
+{\large Grupo}\\[0.2cm]
+{\large Victor 206493, Lixo 123456}\\[0.2cm]
+{\large Prof. Dr. cuzao}\\[6cm]
+
+{\large Campinas}\\[0.2cm]
+{\large 2018}
+\end{center}
+
+\end{titlepage}
+
+
+\begin{abstract}
+Texto resumo.
+\end{abstract}
+
+
+# Seção 1
+
+É possível referenciar com 2 estilos. O primeiro é feito com referências no Markdown [@allen2007likert]. O segundo é feito com referências do Latex \cite{derrick2017comparing}.
+
+Faça equações inline assim $a + 1 = b ~\refstepcounter{equation}(\theequation) \label{eq:aneq}$. Em linha dedicada assim:
+
+\begin{equation} \label{eq:another}
+a + 1 = b
+\end{equation}
+
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
