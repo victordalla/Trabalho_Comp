@@ -30,7 +30,7 @@ header-includes:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = ESCOLHA, 
+  echo = TRUE, 
   message = FALSE,
   warning = FALSE,
   tidy.opts = list(width.cutoff = 60),
@@ -47,25 +47,21 @@ options(
 
 ```
 
-
-
 \begin{titlepage} 
 
 \begin{center} 
 {\large Universidade Estadual de Campinas}\\[0.2cm] 
 {\large Instituto de Matemática, Estatística e Computação Científica}\\[0.2cm] 
-{\large Departamento de Estatística - MEXXX}\\[4cm]
+{\large Departamento de Estatística - ME524}\\[4cm]
 
-{\bf \huge Título: }\\
-{\bf \Large Subtítulo}\\[6cm]
-
+{\bf \huge Algoritmo EM para mistruras}\\
 
 {\large Grupo}\\[0.2cm]
 {\large Victor 206493, Lixo 123456}\\[0.2cm]
-{\large Prof. Dr. cuzao}\\[6cm]
+{\large Prof. Dra. Mariana Motta}\\[6cm]
 
 {\large Campinas}\\[0.2cm]
-{\large 2018}
+{\large 2019}
 \end{center}
 
 \end{titlepage}
