@@ -57,7 +57,7 @@ options(
 {\bf \huge Algoritmo EM para mistruras}\\
 
 {\large Grupo}\\[0.2cm]
-{\large Victor 206493, Lixo 123456}\\[0.2cm]
+{\large Victor Dalla 206493, Mariana Ferreira 183670}\\[0.2cm]
 {\large Prof. Dra. Mariana Motta}\\[6cm]
 
 {\large Campinas}\\[0.2cm]
