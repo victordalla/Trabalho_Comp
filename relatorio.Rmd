@@ -72,15 +72,17 @@ Texto resumo.
 \end{abstract}
 
 
-# Seção 1
+# Introdução
 
-É possível referenciar com 2 estilos. O primeiro é feito com referências no Markdown [@allen2007likert]. O segundo é feito com referências do Latex \cite{derrick2017comparing}.
 
-Faça equações inline assim $a + 1 = b ~\refstepcounter{equation}(\theequation) \label{eq:aneq}$. Em linha dedicada assim:
+# Algoritmo
 
-\begin{equation} \label{eq:another}
-a + 1 = b
-\end{equation}
+
+# Simulção
+
+
+# Resultado
+
 
 
 \bibliographystyle{plain}
