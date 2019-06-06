@@ -74,11 +74,47 @@ Texto resumo.
 
 # Introdução
 
+- comentar misturas e abordagem bayesiana
+- ferramentas computacionais
+
+## Mistura finita
+
+\[
+\quad \sum_{i=1}^{k} p_{i} f_{i}(x), \quad \sum_{i=1}^{k} p_{i}=1, \quad k>1
+\]
+
+Propriedade: $\mathbb{E}\left[X^{m}\right]=\sum_{i=1}^{k} p_{i} \mathbb{E}^{f_{i}}\left[X^{m}\right]$
+
+A verossimilhança $\mathbb{L}(\underline{\theta}, \underline{p} | \underline{x})=\prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} f\left(x_{i} | \theta_{j}\right)$ de uma mistura de k distribuições tem $k^n$ termos, o que impossibilita alguma solução analítica.
+
+
+## Dados faltantes
+
+\[
+X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathscr{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
+\]
 
 # Algoritmo
 
 
-# Simulção
+# Simulação
+
+- mistura de normais com apenas as médias desconhecidas
+- apresentar os problemas com abordagem EM
+
+Mistura: $p N\left(\mu_{1}, 1\right)+(1-p) N\left(\mu_{2}, 1\right)$, $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$
+
+```{r}
+library(dplyr)
+```
+
+```{r}
+rmixnorm <- function(n, mean = list(0), sd = list(1), p = list(0.5)) {
+  norm <- c(do.call(rmultinom, list(1, length(p), p)))
+  rnorm(n, mean[[norm]], sd[[norm]])
+}
+```
+
 
 
 # Resultado
