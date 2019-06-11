@@ -46,6 +46,7 @@ options(
 ```{r lib}
 library(dplyr)
 library(ggplot2)
+library(purrr)
 ```
 
 \begin{titlepage} 
@@ -137,15 +138,16 @@ logmixnorm <- function(x, z, mean = list(0), p = list(0.5), sd = NULL) {
   k <- length(p)
   n <- length(x)
   
-  # p(
-  #   z, 
-  #   function(z) { log(p[z[i]]) + dnorm(x[i], mu[z[i]], 1, log = TRUE) }
-  #   )
+  sum(purrr::map2(
+    as.vector(x), as.vector(z),
+    function(x, z) { log(p[[z]]) + dnorm(x, mean[[z]], 1, log = TRUE) }
+    ))
   
-  sum <- 0
-  for (i in 1:n) {
-    sum <- sum + log(p[[z[i]]]) + dnorm(x[i], mu[[z[i]]], 1, log = TRUE)
-  }
+  # sum <- 0
+  # for (i in 1:n) {
+  #   sum <- sum + log(p[[z[i]]]) + dnorm(x[i], mean[[z[i]]], 1, log = TRUE)
+  # }
+  # sum
 }
 ```
 
