@@ -180,6 +180,18 @@ x <- rmixnorm(n, mean, p)
 logmixnorm(x, mean, p)
 ```
 
+```{r}
+grid_space <- 0.2
+mu1 <- seq(from = -5, to = 5, by = grid_space)
+mu2 <- seq(from = -2.5, to = 7.5, by = grid_space)
+grid_mat <- expand.grid(mu1,mu2)
+grid_mat$mm_dens <- vector(length = length(mu1))
+for (i in 1:nrow(grid_mat)){
+  grid_mat$mm_dens[i] <- logmixnorm(x, c(grid_mat$Var1[i], grid_mat$Var2[i]), p)
+}
+
+ggplot(grid_mat) + stat_contour(aes(x = Var1, y = Var2, z = mm_dens))
+```
 
 
 
