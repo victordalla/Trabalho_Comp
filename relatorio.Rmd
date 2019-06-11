@@ -106,6 +106,7 @@ X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal
 # Algoritmo
 
 
+
 # Simulação
 
 - mistura de normais com apenas as médias desconhecidas
@@ -125,7 +126,7 @@ rz <- function(n, k, p) {
 }
 
 rmixnorm <- function(n, mean = list(0, 0), p = list(0.3, 0.7), sd = list(1, 1)) {
-  if (length(mean) != length(p)) stop("Tamanhos diferem")
+  if (length(mean) != length(p)) stop("Tamanhos de mean e p diferem")
   if (sum(unlist(p)) != 1) stop("Probabilidades não somam 1")
   
   z <- rz(n, k, p)
@@ -136,17 +137,12 @@ rmixnorm <- function(n, mean = list(0, 0), p = list(0.3, 0.7), sd = list(1, 1)) 
 }
 
 logmixnorm <- function(x, mean = list(0), p = list(1), sd = list(1, 1)) {
-  if (length(mean) != length(p)) stop("Tamanhos diferem")
+  if (length(mean) != length(p)) stop("Tamanhos de mean e p diferem")
   
   k <- length(p)
   n <- length(x)
   
-  sum(purrr::map_dbl(
-    as_vector(x), 
-    function(x) { 
-      log(p[[1]]*dnorm(x, mean[[1]], 1) + p[[2]]*dnorm(x, mean[[2]], 1))
-      }
-    ))
+  sum(log(p[[1]]*dnorm(x, mean[[1]], 1) + p[[2]]*dnorm(x, mean[[2]], 1)))
 }
 
 logmixnorm_complete <- function(x, z, mean = list(0), p = list(1), sd = NULL) {
@@ -176,22 +172,25 @@ p <- list(0.7, 0.3)
 k <- 2
 
 x <- rmixnorm(n, mean, p)
-
-logmixnorm(x, mean, p)
 ```
 
 ```{r}
 grid_space <- 0.2
-mu1 <- seq(from = -5, to = 5, by = grid_space)
-mu2 <- seq(from = -2.5, to = 7.5, by = grid_space)
-grid_mat <- expand.grid(mu1,mu2)
-grid_mat$mm_dens <- vector(length = length(mu1))
-for (i in 1:nrow(grid_mat)){
-  grid_mat$mm_dens[i] <- logmixnorm(x, c(grid_mat$Var1[i], grid_mat$Var2[i]), p)
-}
-
-ggplot(grid_mat) + stat_contour(aes(x = Var1, y = Var2, z = mm_dens))
+grid <- expand.grid(
+  mu1 = seq(from = -5, to = 5, by = grid_space), 
+  mu2 = seq(from = -2.5, to = 7.5, by = grid_space)
+  )
+grid$log <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm(x, c(mu1, mu2), p))
 ```
+
+```{r}
+ggplot(grid, aes(x = mu1, y = mu2, z = log)) + 
+  geom_raster(aes(fill = log)) + 
+  geom_contour(lineend = "round", linejoin = "round", binwidth = 200, col = "white")
+  # install.packages("metR")
+  # geom_text_contour()
+```
+
 
 
 
