@@ -119,27 +119,45 @@ Mistura: $p N\left(\mu_{1}, 1\right)+(1-p) N\left(\mu_{2}, 1\right)$, $\left(\mu
 
 
 ```{r}
-rmixnorm <- function(n, mean = list(0), p = list(0.5), sd = NULL) {
-  if (length(mean) != length(p)) errorCondition("Tamanhos diferem")
-  
-  sd <- rep(1, length(p))
-  norm <- sample(1:length(p), 1, replace = TRUE, p)
-  rnorm(n, mean[[norm]], sd[[norm]])
-}
-
 rz <- function(n, k, p) {
   sample(1:k, n, replace = TRUE, p)
 }
 
-logmixnorm <- function(x, z, mean = list(0), p = list(0.5), sd = NULL) {
-  if (length(x) != length(z) || length(mean) != length(p)) errorCondition("Tamanhos diferem")
+rmixnorm <- function(n, mean = list(0, 0), p = list(0.3, 0.7), sd = list(1, 1)) {
+  if (length(mean) != length(p)) stop("Tamanhos diferem")
+  if (sum(unlist(p)) != 1) stop("Probabilidades não somam 1")
+  
+  z <- rz(n, k, p)
+  c(
+    rnorm(sum(z == 1), mean[[1]], sd[[1]]), 
+    rnorm(sum(z == 2), mean[[2]], sd[[2]])
+    )
+}
+
+logmixnorm <- function(x, mean = list(0), p = list(1), sd = NULL) {
+  if (length(x) != length(z) || length(mean) != length(p)) stop("Tamanhos diferem")
+  
+  if(is.null(sd)) sd <- rep(1, length(p))
+  k <- length(p)
+  n <- length(x)
+  
+  sum(purrr::map_dbl(
+    as_vector(x), 
+    function(x) { 
+      log(p[[1]]*dnorm(x, mean[[1]], 1) + p[[2]]*dnorm(x, mean[[2]], 1))
+      }
+    ))
+}
+
+logmixnorm_complete <- function(x, z, mean = list(0), p = list(1), sd = NULL) {
+  if (length(x) != length(z) || length(mean) != length(p)) stop("Tamanhos diferem")
   
   sd <- rep(1, length(p))
   k <- length(p)
   n <- length(x)
   
-  sum(purrr::map2(
-    as.vector(x), as.vector(z),
+  sum(purrr::map2_dbl(
+    as_vector(x), as_vector(z),
     function(x, z) { log(p[[z]]) + dnorm(x, mean[[z]], 1, log = TRUE) }
     ))
   
@@ -157,11 +175,9 @@ mean <- list(0, 2.5)
 p <- list(0.7, 0.3)
 k <- 2
 
-mixture_simul <- rmixnorm(n, mean, p)
+x <- rmixnorm(n, mean, p)
 
-z <- rz(n, k, p)
-
-logmixnorm(mixture_simul, z, mean, p)
+logmixnorm(x, mean, p)
 ```
 
 
