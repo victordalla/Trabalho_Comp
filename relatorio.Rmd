@@ -37,14 +37,15 @@ knitr::opts_chunk$set(
   tidy = TRUE
   )
 options(
-  OutDec = ",", 
+  OutDec = ".", 
   knitr.table.format = "latex", 
   xtable.comment = FALSE
   )
 ```
 
 ```{r lib}
-
+library(dplyr)
+library(ggplot2)
 ```
 
 \begin{titlepage} 
@@ -101,11 +102,9 @@ A verossimilhança $\mathbb{L}(\underline{\theta}, \underline{p} | \underline{x}
 
 ## Dados faltantes
 
-```{r}
-#\[
-#X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathscr{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
-#\]
-```
+\[
+X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
+\]
 
 # Algoritmo
 
@@ -117,16 +116,52 @@ A verossimilhança $\mathbb{L}(\underline{\theta}, \underline{p} | \underline{x}
 
 Mistura: $p N\left(\mu_{1}, 1\right)+(1-p) N\left(\mu_{2}, 1\right)$, $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$
 
+
 ```{r}
-library(dplyr)
+rmixnorm <- function(n, mean = list(0), p = list(0.5), sd = NULL) {
+  if (length(mean) != length(p)) errorCondition("Tamanhos diferem")
+  
+  sd <- rep(1, length(p))
+  norm <- sample(1:length(p), 1, replace = TRUE, p)
+  rnorm(n, mean[[norm]], sd[[norm]])
+}
+
+rz <- function(n, k, p) {
+  sample(1:k, n, replace = TRUE, p)
+}
+
+logmixnorm <- function(x, z, mean = list(0), p = list(0.5), sd = NULL) {
+  if (length(x) != length(z) || length(mean) != length(p)) errorCondition("Tamanhos diferem")
+  
+  sd <- rep(1, length(p))
+  k <- length(p)
+  n <- length(x)
+  
+  # p(
+  #   z, 
+  #   function(z) { log(p[z[i]]) + dnorm(x[i], mu[z[i]], 1, log = TRUE) }
+  #   )
+  
+  sum <- 0
+  for (i in 1:n) {
+    sum <- sum + log(p[[z[i]]]) + dnorm(x[i], mu[[z[i]]], 1, log = TRUE)
+  }
+}
 ```
 
 ```{r}
-rmixnorm <- function(n, mean = list(0), sd = list(1), p = list(0.5)) {
-  norm <- c(do.call(rmultinom, list(1, length(p), p)))
-  rnorm(n, mean[[norm]], sd[[norm]])
-}
+n <- 500
+mean <- list(0, 2.5)
+p <- list(0.7, 0.3)
+k <- 2
+
+mixture_simul <- rmixnorm(n, mean, p)
+
+z <- rz(n, k, p)
+
+logmixnorm(mixture_simul, z, mean, p)
 ```
+
 
 
 
