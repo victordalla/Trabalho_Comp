@@ -43,11 +43,7 @@ options(
   )
 ```
 
-```{r lib}
-library(dplyr)
-library(ggplot2)
-library(purrr)
-```
+
 
 \begin{titlepage} 
 
@@ -117,6 +113,11 @@ X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal
 
 Mistura: $p N\left(\mu_{1}, 1\right)+(1-p) N\left(\mu_{2}, 1\right)$, $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$
 
+```{r lib}
+library(dplyr)
+library(ggplot2)
+library(purrr)
+```
 
 ```{r}
 rz <- function(n, k, p) {
@@ -134,10 +135,9 @@ rmixnorm <- function(n, mean = list(0, 0), p = list(0.3, 0.7), sd = list(1, 1)) 
     )
 }
 
-logmixnorm <- function(x, mean = list(0), p = list(1), sd = NULL) {
-  if (length(x) != length(z) || length(mean) != length(p)) stop("Tamanhos diferem")
+logmixnorm <- function(x, mean = list(0), p = list(1), sd = list(1, 1)) {
+  if (length(mean) != length(p)) stop("Tamanhos diferem")
   
-  if(is.null(sd)) sd <- rep(1, length(p))
   k <- length(p)
   n <- length(x)
   
