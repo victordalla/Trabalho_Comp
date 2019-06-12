@@ -139,7 +139,7 @@ $$
 \mathbb{L}(\underline{\mu}, \underline{p} | \underline{x}, \underline{z}) = \prod_{i=1}^{n}\prod_{j=1}^{k} \left[p_j f_j(x_i|\mu_j) \right]^{\mathbb{I}(z_i=j)}\\
 \log(\mathbb{L}(\underline{\mu}, \underline{p} | \underline{x}, \underline{z})) = \sum_{i=1}^{n}\sum_{j=1}^{k} \mathbb{I}(z_i=j) \left[p_j f_j(x_i|\mu_j) \right],
 $$
-sendo que $f_j(x_i|\mu_j)$ = $N(x_i|\mu_j, 1)$. O termo $p_j$ indica de qual densidade a observação $x_i$ veio.
+sendo que $f_j(x_i|\mu_j)$ = $N(x_i|\mu_j, 1)$. O termo $p_j$ indica a probabilidade da observação $x_i$ ser da componente de densidade $f_j$.
 
 Como enunciado na verossimilhança acima, o somatório em j indica de qual componente a observação $x_i$ pertence; no nosso caso, de qual componente da distribuição Normal. Além disso, $f_j(x_i|\mu_j)$ e $p_j$ dependem do índice j, porém não é uma informação conhecida; por este motivo é necessário utilizar a variável latente $z_i=j$. Como em uma mitura podemos ter k componentes, então a variável $z_i$ precisa assumir k diferentes valores, um para cada componente. Logo, $z_i$ segue uma distribuição multinomial:
 $$
