@@ -2,7 +2,6 @@
 output: 
   pdf_document:
     fig_crop: no
-bibliography: bibliography.bib
 fontsize: 11pt
 documentclass: article
 geometry: margin=2cm
@@ -30,15 +29,15 @@ header-includes:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE, 
-  message = FALSE,
-  warning = FALSE,
-  tidy.opts = list(width.cutoff = 60),
-  tidy = TRUE
+  echo = TRUE, message = FALSE, warning = FALSE,
+  #engine.path = list(r = '', pyton = ''), 
+  tidy = "formatR", tidy.opts = list(width.cutoff = 60), #tidy = "styler", 
+  fig.align = "center", fig.height = 3, fig.width = 5
   )
 options(
-  OutDec = ".", 
-  knitr.table.format = "latex", 
+  digits = 3, 
+  OutDec = ",", 
+  scipen = 4, 
   xtable.comment = FALSE
   )
 ```
@@ -75,127 +74,154 @@ Texto resumo.
 - comentar misturas e abordagem bayesiana
 - ferramentas computacionais
 
-Os estatísticos que trabalham com análise e modelagem de dados atualmente estão em uma posição luxuosa de conseguir estimar, prever e inferir sobre sistemas complexos de interesse, graças a métodos computacionais cada vez mais poderosos e robustos. Modelos robustos, como os modelos de mistura, constituem uma fascinante ilustração desses aspectos: enquanto dentro de uma família paramétrica, eles oferecem aproximações maleáveis em ambientes não paramétricos e, embora baseados em distribuições padrões, eles representam desafios computacionais altamente complexos.\newline
-As distribuições de misturas compreendem um número finito ou infinito de componentes, possivelmente de diferentes tipos de distribuições, que descrevem as características dos dados. Facilitam, assim, uma descrição muito mais cuidadosa dos sistemas complexos. Por exemplo, na genética, a localização de características quantitativas em um cromossomo e a interpretação de microarranjos relacionam-se a misturas.\newline
-Abordagens Bayesianas à modelagem de misturas têm atraído grande interesse entre pesquisadores e praticantes. O paradigma Bayesiano permite que declarações de probabilidade sejam feitas diretamente sobre os parâmetros desconhecidos e opiniões prévias a serem incluídas na análise e modelagem do modelo. Essa estrutura também permite que a dificuldade de um modelo de mistura seja decomposta em um conjunto de estruturas mais simples, através do uso de variáveis latentes. 
+Os estatísticos que trabalham com análise e modelagem de dados atualmente estão em uma posição luxuosa de conseguir estimar, prever e inferir sobre sistemas complexos de interesse, graças a métodos computacionais cada vez mais poderosos e robustos. Modelos robustos, como os modelos de mistura, constituem uma fascinante ilustração desses aspectos: enquanto dentro de uma família paramétrica, eles oferecem aproximações maleáveis em ambientes não paramétricos e, embora baseados em distribuições padrões, eles representam desafios computacionais altamente complexos \cite{marin2005bayesian}.
 
-## Mistura finita
+As distribuições de misturas compreendem um número finito ou infinito de componentes, possivelmente de diferentes tipos de distribuições, que descrevem as características dos dados. Facilitam, assim, uma descrição muito mais cuidadosa dos sistemas complexos. Por exemplo, na genética, a localização de características quantitativas em um cromossomo e a interpretação de microarranjos relacionam-se a misturas.
+
+Abordagens Bayesianas à modelagem de misturas têm atraído grande interesse entre pesquisadores e praticantes. O paradigma Bayesiano permite que declarações de probabilidade sejam feitas diretamente sobre os parâmetros desconhecidos e opiniões prévias a serem incluídas na análise e modelagem do modelo. Essa estrutura também permite que a dificuldade de um modelo de mistura seja decomposta em um conjunto de estruturas mais simples, através do uso de variáveis latentes e do algoritmo de *Expectation Maximization* (EM).
+
+# Mistura finita
 
 A descrição de uma mistura de distribuições é simples: qualquer combinação convexa de outras distribuições $f_i$ é uma mistura, como mostra a combinação abaixo:
-\[
+
+$$
 \quad \sum_{i=1}^{k} p_{i} f_{i}(x), \quad \sum_{i=1}^{k} p_{i}=1, \quad k>1
-\]
+$$
 
 Na maioria dos casos, as distribuições $f_i$ são de uma família paramétrica, com parâmetro desconhecido $\theta_i$, levando ao modelo de mistura paramétrica:
-\[
+
+$$
 \sum_{i=1}^{k} p_{i} f\left(x | \theta_{i}\right)
-\]
+$$
 
 Além disso, o comportamento da cauda de uma mistura é sempre descrito por um ou dois de seus componentes e que, portanto, deve refletir a escolha da família paramétrica $f\left(.| \theta_{i}\right)$. Note também que a representação de misturas como combinações convexas de distribuições implica na propriedade de cálculo dos momentos: 
+
 $$\mathbb{E}\left[X^{m}\right]=\sum_{i=1}^{k} p_{i} \mathbb{E}^{f_{i}}\left[X^{m}\right]$$
 
 A verossimilhança $\mathbb{L}(\underline{\theta}, \underline{p} | \underline{x})=\prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} f\left(x_{i} | \theta_{j}\right)$ de uma mistura de k distribuições tem $k^n$ termos, o que impossibilita alguma solução analítica.
 
+## Algoritmo
 
-## Dados faltantes
+Queremos encontrar o estimador de máxima verossimilhança (no contexto frequentista) ou o estimador máximo a posteriori (no contexto bayesiano), ou seja, em uma notação simplificada, queremos
 
-\[
+$$
+\hat{\theta} = \arg \max _{\theta} \mathbb{L}(\theta | x)
+$$
+
+Onde $\theta$ são os parâmetros da distribuiçao de $x$ e $\mathbb{L}$ é a verossimilhança ou a posteriori dos parâmetros nos dados observados $x$.
+
+Apesar de existir métodos numéricos para o cômputo de máximos de função, é possível que a forma de $\mathbb{L}(\theta | x)$ sejá difícil de ser computada ou numericamente instável. O algoritmo EM é um método iterativo que pode ser capaz de otimizar $\mathbb{L}$ através da otimização de uma função (esperada ser) mais simples $Q\left(\theta | \theta^{(t-1)}, x\right)$.
+
+### Algoritmo EM
+
+0. Inicialização: escolha um valor para $\theta^{(0)}$
+
+1. Passo $t$: para $t=1$ até um critério de convergência
+
+1.1 Passo E: calcule 
+
+$$ 
+Q\left(\theta | \theta^{(t-1)}, x\right) = \mathbb{E}\left[\log \mathbb{L}(\theta | x, Z) | \theta^{(t-1)}, x \right], \quad Z \sim k\left(z | \theta^{(t-1)}, x\right)
+$$
+
+1.2 Passo M: maximize $Q$ e tome 
+
+$$
+\theta^{(t)} = \arg \max _{\theta} Q\left(\theta | \theta^{(t-1)}, x\right)
+$$
+
+O critério de convergência pode ser: pare quando $\left| \frac{\mathbb{L}(\theta^{t} | x, Z) - \mathbb{L}(\theta^{t-1} | x, Z)}{\mathbb{L}(\theta^{t-1} | x, Z)} \right| < \epsilon$.
+
+## EM para misturas gaussianas
+
+- parte difícil
+
+$$
 X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
-\]
-
-# Algoritmo
-
+$$
 
 
 # Simulação
-
-- mistura de normais com apenas as médias desconhecidas
-- apresentar os problemas com abordagem EM
-
-Mistura: $p N\left(\mu_{1}, 1\right)+(1-p) N\left(\mu_{2}, 1\right)$, $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$
 
 ```{r lib}
 library(dplyr)
 library(ggplot2)
 library(purrr)
+# library(metR) - geom_text_contour()
 ```
 
-```{r}
+```{r functions}
 rz <- function(n, k, p) {
   sample(1:k, n, replace = TRUE, p)
 }
 
-rmixnorm <- function(n, mean = list(0, 0), p = list(0.3, 0.7), sd = list(1, 1)) {
-  if (length(mean) != length(p)) stop("Tamanhos de mean e p diferem")
-  if (sum(unlist(p)) != 1) stop("Probabilidades não somam 1")
+rmixnorm <- function(n, mean = list(0, 0), p = list(0.5, 0.5), sd = list(1, 1)) {
+  if (length(mean) != length(p) || length(sd) != length(p)) stop("Tamanhos de mean, p e sd diferem")
+  if (sum(unlist(p)) != 1) stop("Probabilidades de p não somam 1")
   
-  z <- rz(n, k, p)
-  c(
-    rnorm(sum(z == 1), mean[[1]], sd[[1]]), 
-    rnorm(sum(z == 2), mean[[2]], sd[[2]])
-    )
+  z <- rz(n, length(p), p)
+  c(rnorm(sum(z == 1), mean[[1]], sd[[1]]), rnorm(sum(z == 2), mean[[2]], sd[[2]]))
 }
 
-logmixnorm <- function(x, mean = list(0), p = list(1), sd = list(1, 1)) {
-  if (length(mean) != length(p)) stop("Tamanhos de mean e p diferem")
-  
-  k <- length(p)
-  n <- length(x)
+logmixnorm <- function(x, mean = list(0, 0), p = list(0.5, 0.5), sd = list(1, 1)) {
+  if (length(mean) != length(p) || length(sd) != length(p)) stop("Tamanhos de mean, p e sd diferem")
+  if (sum(unlist(p)) != 1) stop("Probabilidades de p não somam 1")
   
   sum(log(p[[1]]*dnorm(x, mean[[1]], 1) + p[[2]]*dnorm(x, mean[[2]], 1)))
 }
 
-logmixnorm_complete <- function(x, z, mean = list(0), p = list(1), sd = NULL) {
-  if (length(x) != length(z) || length(mean) != length(p)) stop("Tamanhos diferem")
-  
-  sd <- rep(1, length(p))
-  k <- length(p)
-  n <- length(x)
+logmixnorm_complete <- function(x, z, mean = list(0, 0), p = list(0.5, 0.5), sd = list(1, 1)) {
+  if (length(x) != length(z) || length(mean) != length(p) || length(sd) != length(p)) stop("Tamanhos diferem")
+  if (sum(unlist(p)) != 1) stop("Probabilidades de p não somam 1")
   
   sum(purrr::map2_dbl(
     as_vector(x), as_vector(z),
-    function(x, z) { log(p[[z]]) + dnorm(x, mean[[z]], 1, log = TRUE) }
+    function(x, z) log(p[[z]]) + dnorm(x, mean[[z]], sd[[z]], log = TRUE)
     ))
   
   # sum <- 0
   # for (i in 1:n) {
-  #   sum <- sum + log(p[[z[i]]]) + dnorm(x[i], mean[[z[i]]], 1, log = TRUE)
+  #   sum <- sum + log(p[[z[i]]]) + dnorm(x[i], mean[[z[i]]], sd[[z[i]]], log = TRUE)
   # }
   # sum
 }
 ```
 
-```{r}
+
+## p conhecido
+
+Foi gerada uma amostra de tamanho $n=500$ da mistura gaussiana $p N\left(\mu_{1}, 1\right)+(1-p) \mathcal{N}\left(\mu_{2}, 1\right)$, com $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$. A Figura \ref{fig:} apresenta uma curva de nível log-verossimilhança no dados.
+
+```{r data}
 n <- 500
 mean <- list(0, 2.5)
 p <- list(0.7, 0.3)
-k <- 2
-
+set.seed(42)
 x <- rmixnorm(n, mean, p)
-```
 
-```{r}
 grid_space <- 0.2
 grid <- expand.grid(
   mu1 = seq(from = -5, to = 5, by = grid_space), 
-  mu2 = seq(from = -2.5, to = 7.5, by = grid_space)
+  mu2 = seq(from = -2.5, to = 6, by = grid_space)
   )
 grid$log <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm(x, c(mu1, mu2), p))
-```
 
-```{r}
 ggplot(grid, aes(x = mu1, y = mu2, z = log)) + 
   geom_raster(aes(fill = log)) + 
-  geom_contour(lineend = "round", linejoin = "round", binwidth = 200, col = "white")
-  # install.packages("metR")
-  # geom_text_contour()
+  geom_contour(lineend = "round", linejoin = "round", binwidth = 200, col = "white") + 
+  scale_fill_distiller(palette = "RdYlBu") + 
+  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", list(mu, p), "|", x, ")"))) + 
+  theme_minimal()
+```
+
+Com o objetivo de avaliar a performance do algoritmo EM, cinco execuções foram feitas com pontos inciais $\mu_1^{(0)} = ...$ e $\mu_2^{(0)} = ...$.
+
+```{r em}
+
 ```
 
 
-
-
-# Resultado
-
+# Conclusão
 
 
 \bibliographystyle{plain}
