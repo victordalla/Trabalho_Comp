@@ -134,6 +134,13 @@ O critério de convergência pode ser: pare quando $\left| \frac{\mathbb{L}(\the
 
 ## EM para misturas gaussianas
 
+Como o foco deste trabalho é em misturas gaussianas, a função de verossimilhança completa pode ser escrita da seguinte maneira:
+$$
+\mathbb{L}(\underline{\mu}, \underline{p} | \underline{x}, \underline{z}) = \prod_{i=1}^{n}\prod_{j=1}^{k} \left[p_j f_j(x_i|\mu_j) \right]^{\mathbb{I}(z_i=j)}\\
+\log(\mathbb{L}(\underline{\mu}, \underline{p} | \underline{x}, \underline{z})) = \sum_{i=1}^{n}\sum_{j=1}^{k} \mathbb{I}(z_i=j) \left[p_j f_j(x_i|\mu_j) \right],
+$$
+sendo que $f_j(x_i|\mu_j)$ = $N(x_i|\mu_j, 1)$. O termo $p_j$ indica de qual densidade a observação $x_i$ veio.
+
 - parte difícil
 
 $$
@@ -190,9 +197,9 @@ logmixnorm_complete <- function(x, z, mean = list(0, 0), p = list(0.5, 0.5), sd 
 
 ## p conhecido
 
-Foi gerada uma amostra de tamanho $n=500$ da mistura gaussiana $p N\left(\mu_{1}, 1\right)+(1-p) \mathcal{N}\left(\mu_{2}, 1\right)$, com $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$. A Figura \ref{fig:} apresenta uma curva de nível log-verossimilhança no dados.
+Foi gerada uma amostra de tamanho $n=500$ da mistura gaussiana $p N\left(\mu_{1}, 1\right)+(1-p) \mathcal{N}\left(\mu_{2}, 1\right)$, com $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$. A Figura \ref{fig:graf1} apresenta uma curva de nível log-verossimilhança no dados.
 
-```{r data}
+```{r data, results='hide'}
 n <- 500
 mean <- list(0, 2.5)
 p <- list(0.7, 0.3)
@@ -206,6 +213,15 @@ grid <- expand.grid(
   )
 grid$log <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm(x, c(mu1, mu2), p))
 
+ggplot(grid, aes(x = mu1, y = mu2, z = log)) + 
+  geom_raster(aes(fill = log)) + 
+  geom_contour(lineend = "round", linejoin = "round", binwidth = 200, col = "white") + 
+  scale_fill_distiller(palette = "RdYlBu") + 
+  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", list(mu, p), "|", x, ")"))) + 
+  theme_minimal()
+```
+
+```{r graf1, echo = FALSE, fig.pos = "H", fig.cap= "Gráfico da curva de nível log-verossimilhança"}
 ggplot(grid, aes(x = mu1, y = mu2, z = log)) + 
   geom_raster(aes(fill = log)) + 
   geom_contour(lineend = "round", linejoin = "round", binwidth = 200, col = "white") + 
