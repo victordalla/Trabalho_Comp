@@ -141,8 +141,7 @@ $$
 $$
 sendo que $f_j(x_i|\mu_j)$ = $N(x_i|\mu_j, 1)$. O termo $p_j$ indica de qual densidade a observação $x_i$ veio.
 
-- parte difícil
-
+Como enunciado na verossimilhança acima, o somatório em j indica de qual componente a observação $x_i$ pertence; no nosso caso, de qual componente da distribuição Normal. Além disso, $f_j(x_i|\mu_j)$ e $p_j$ dependem do índice j, porém não é uma informação conhecida; por este motivo é necessário utilizar a variável latente $z_i=j$. Como em uma mitura podemos ter k componentes, então a variável $z_i$ precisa assumir k diferentes valores, um para cada componente. Logo, $z_i$ segue uma distribuição multinomial:
 $$
 X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
 $$
