@@ -134,7 +134,7 @@ O critério de convergência pode ser: pare quando $\left| \frac{\mathbb{L}(\the
 
 ## EM para misturas gaussianas
 
-Como o foco deste trabalho é em misturas gaussianas, a probabilidade marginal da observação $x_i$ vir de um modelo de mistura k pode ser escrito como:
+A probabilidade marginal da observação $x_i$ vir de um modelo de mistura k pode ser escrito como:
 $$
 P\left(X_{i}=x\right)=\sum_{j=1}^{k} p_{j} P\left(X_{i}=x | Z_{i}=j\right)
 $$
