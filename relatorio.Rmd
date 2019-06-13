@@ -30,9 +30,9 @@ header-includes:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE, message = FALSE, warning = FALSE,
-  #engine.path = list(r = '', pyton = ''), 
-  tidy = "formatR", tidy.opts = list(width.cutoff = 60), #tidy = "styler", 
-  fig.align = "center", fig.height = 3, fig.width = 5
+  # engine.path = c(r = '', pyton = ''), 
+  tidy = "formatR", tidy.opts = c(width.cutoff = 60), #tidy = "styler", 
+  fig.align = "center", fig.height = 5, fig.width = 7
   )
 options(
   digits = 3, 
@@ -152,42 +152,51 @@ $$
 ```{r lib}
 library(dplyr)
 library(ggplot2)
+library(gridExtra)
 library(purrr)
 library(metR)
 ```
 
 ```{r functions}
-rz <- function(n, k, p) {
-  sample(1:k, n, replace = TRUE, p)
+rz <- function(n, p = c(0.5, 0.5)) {
+  rbinom(n, 1, p[1]) + 1
+}
+# P(Z = k|x)
+dz <- function(k, x, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
+  p[k] * dnorm(x, mean[k], sd[k]) / 
+    purrr::map_dbl(
+      x, 
+      function(x) sum(p[1]*dnorm(x, mean[1], sd[1]) + p[2]*dnorm(x, mean[2], sd[2]))
+    )
 }
 
-rmixnorm <- function(n, mean = list(0, 0), p = list(0.5, 0.5), sd = list(1, 1)) {
-  if (length(mean) != length(p) || length(sd) != length(p)) stop("Tamanhos de mean, p e sd diferem")
-  if (sum(unlist(p)) != 1) stop("Probabilidades de p não somam 1")
+rmixnorm <- function(n, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
+  if (length(sd) != 2 || length(p) != 2 || length(sd) != 2) stop("Tamanhos de mean, p e sd devem ser 2")
+  if (sum(p) != 1) stop("Probabilidades de p não somam 1")
   
-  z <- rz(n, length(p), p)
-  c(rnorm(sum(z == 1), mean[[1]], sd[[1]]), rnorm(sum(z == 2), mean[[2]], sd[[2]]))
+  z <- rz(n, p)
+  rnorm(n, mean[z], sd[z])
 }
 
-logmixnorm <- function(x, mean = list(0, 0), p = list(0.5, 0.5), sd = list(1, 1)) {
-  if (length(mean) != length(p) || length(sd) != length(p)) stop("Tamanhos de mean, p e sd diferem")
-  if (sum(unlist(p)) != 1) stop("Probabilidades de p não somam 1")
+logmixnorm_incomplete <- function(x, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
+  if (length(sd) != 2 || length(p) != 2 || length(sd) != 2) stop("Tamanhos de mean, p e sd devem ser 2")
+  if (sum(as_vector(p)) != 1) stop("Probabilidades de p não somam 1")
   
-  sum(log(p[[1]]*dnorm(x, mean[[1]], 1) + p[[2]]*dnorm(x, mean[[2]], 1)))
+  sum(log(p[1]*dnorm(x, mean[1], sd[1]) + p[2]*dnorm(x, mean[2], sd[2])))
 }
 
-logmixnorm_complete <- function(x, z, mean = list(0, 0), p = list(0.5, 0.5), sd = list(1, 1)) {
-  if (length(x) != length(z) || length(mean) != length(p) || length(sd) != length(p)) stop("Tamanhos diferem")
-  if (sum(unlist(p)) != 1) stop("Probabilidades de p não somam 1")
+logmixnorm_complete <- function(x, z, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
+  if (length(sd) != 2 || length(p) != 2 || length(sd) != 2) stop("Tamanhos de mean, p e sd devem ser 2")
+  if (sum(p) != 1) stop("Probabilidades de p não somam 1")
   
   sum(purrr::map2_dbl(
-    as_vector(x), as_vector(z),
-    function(x, z) log(p[[z]]) + dnorm(x, mean[[z]], sd[[z]], log = TRUE)
+    x, z,
+    function(x, z) log(p[z]) + dnorm(x, mean[z], sd[z], log = TRUE)
     ))
   
   # sum <- 0
   # for (i in 1:n) {
-  #   sum <- sum + log(p[[z[i]]]) + dnorm(x[i], mean[[z[i]]], sd[[z[i]]], log = TRUE)
+  #   sum <- sum + log(p[z[i]]) + dnorm(x[i], mean[z[i]], sd[z[i]], log = TRUE)
   # }
   # sum
 }
@@ -200,34 +209,79 @@ Foi gerada uma amostra de tamanho $n=500$ da mistura gaussiana $p N\left(\mu_{1}
 
 ```{r data, results='hide'}
 n <- 500
-mean <- list(0, 2.5)
-p <- list(0.7, 0.3)
+mean <- c(0, 2.5)
+p <- c(0.7, 0.3)
+sd = c(1, 1)
 set.seed(42)
 x <- rmixnorm(n, mean, p)
 
 grid_space <- 0.2
 grid <- expand.grid(
-  mu1 = seq(from = -5, to = 5, by = grid_space), 
-  mu2 = seq(from = -2.5, to = 6, by = grid_space)
+  mu1 = seq(from = -3, to = 7, by = grid_space), 
+  mu2 = seq(from = -3, to = 7, by = grid_space)
   )
-grid$log <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm(x, c(mu1, mu2), p))
+grid$log_lik <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm_incomplete(x, c(mu1, mu2), p))
 ```
 
 ```{r graf1, echo = FALSE, fig.pos = "H", fig.cap= "Gráfico da curva de nível log-verossimilhança"}
-ggplot(grid, aes(x = mu1, y = mu2, z = log)) + 
-  geom_raster(aes(fill = log)) + 
-  geom_contour2(lineend = "round", linejoin = "round", binwidth = 200, col = "white") + 
+ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
+  geom_raster(aes(fill = log_lik)) + 
+  geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
   geom_text_contour(stroke = 0.1) + 
   scale_fill_distiller(palette = "RdYlBu") + 
-  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", list(mu, p), "|", x, ")"))) + 
+  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
   theme_minimal()
 ```
 
 Com o objetivo de avaliar a performance do algoritmo EM, cinco execuções foram feitas com pontos inciais $\mu_1^{(0)} = ...$ e $\mu_2^{(0)} = ...$.
 
 ```{r em}
-
+run_EM <- function(mean1, mean2, x, p, sd = c(1, 1), M = 100, converg = 1e-5) {
+  result <- tibble(it = numeric(M), log_lik = numeric(M), mean1 = numeric(M), mean2 = numeric(M))
+  # valores iniciais
+  mean <- c(mean1, mean2)
+  log_lik <- logmixnorm_incomplete(x, mean, p, sd)
+  delta <- abs(log_lik)
+  for (i in 1:M) {
+    if (delta < converg) {
+      message(paste("converged at iteration", i))
+      break
+    }
+    
+    # guarda resultado
+    result[i, ] <- c(i, log_lik, mean[1], mean[2])
+    
+    # update mean
+    expct <- list(dz(rep(1, length(x)), x, mean, p), dz(rep(2, length(x)), x, mean, p))
+    mean <- c(sum(x * expct[[1]]), sum(x * expct[[2]])) / 
+      c(sum(expct[[1]]), sum(expct[[2]]))
+    
+    # update critério de parada
+    delta <- abs((log_lik - logmixnorm_incomplete(x, mean, p, sd)) / log_lik)
+    log_lik <- logmixnorm_incomplete(x, mean, p, sd)
+  }
+  
+  if (i == M) warning(paste("log_lik doesn't converged after ", M, "steps with converg="), converg)
+  filter(result, it > 0)
+}
 ```
+
+```{r}
+runs <- list(run_EM(5, -.5, x, p))
+
+grid.arrange(
+  nrow = 1, 
+  ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
+      geom_raster(aes(fill = log_lik)) + 
+      geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
+      geom_text_contour(stroke = 0.1) + 
+      scale_fill_distiller(palette = "RdYlBu") + 
+      geom_path(data = runs[[1]], aes(mean1, mean2)) + 
+      labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
+      theme_minimal()
+)
+```
+
 
 
 # Conclusão
