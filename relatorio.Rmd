@@ -42,8 +42,6 @@ options(
   )
 ```
 
-
-
 \begin{titlepage} 
 
 \begin{center} 
@@ -134,14 +132,69 @@ O critério de convergência pode ser: pare quando $\left| \frac{\mathbb{L}(\the
 
 ## EM para misturas gaussianas
 
-Como o foco deste trabalho é em misturas gaussianas, a função de verossimilhança completa pode ser escrita da seguinte maneira:
-$$
-\mathbb{L}(\underline{\mu}, \underline{p} | \underline{x}, \underline{z}) = \prod_{i=1}^{n}\prod_{j=1}^{k} \left[p_j f_j(x_i|\mu_j) \right]^{\mathbb{I}(z_i=j)}\\
-\log(\mathbb{L}(\underline{\mu}, \underline{p} | \underline{x}, \underline{z})) = \sum_{i=1}^{n}\sum_{j=1}^{k} \mathbb{I}(z_i=j) \left[p_j f_j(x_i|\mu_j) \right],
-$$
-sendo que $f_j(x_i|\mu_j)$ = $N(x_i|\mu_j, 1)$. O termo $p_j$ indica a probabilidade da observação $x_i$ ser da componente de densidade $f_j$.
+A probabilidade marginal da observação $x_i$ vir de um modelo de mistura k pode ser escrito como:
 
-Como enunciado na verossimilhança acima, o somatório em j indica de qual componente a observação $x_i$ pertence; no nosso caso, de qual componente da distribuição Normal. Além disso, $f_j(x_i|\mu_j)$ e $p_j$ dependem do índice j, porém não é uma informação conhecida; por este motivo é necessário utilizar a variável latente $z_i=j$. Como em uma mitura podemos ter k componentes, então a variável $z_i$ precisa assumir k diferentes valores, um para cada componente. Logo, $z_i$ segue uma distribuição multinomial:
+$$
+P\left(X_{i}=x\right)=\sum_{j=1}^{k} p_{j} P\left(X_{i}=x | Z_{i}=j\right)
+$$
+
+onde $Z_{i} \in\{1, \ldots, k\}$ é a variável latente que representa o componente da mistura para $x_i$; $P\left(X_{i} | Z_{i}\right.)$ indica a mistura e $p_j$ é a probabilidade de $x_i$ pertencer ao k-ésimo componente da mistura. Como neste caso estamos interessados em misturas Gaussianas, então $X_{i} | Z_{i}=j \sim N\left(\mu_{j}, 1\right)$, podendo escrever a distribuição marginal de $x_i$ da seguinte maneira:
+
+$$
+P\left(X_{i}=x\right)=\sum_{j=1}^{k} P\left(Z_{i}=j\right) P\left(X_{i}=x | Z_{i}=j\right)=\sum_{j=1}^{k} p_{j} N\left(x ; \mu_{j}, 1\right)
+$$
+
+
+Então, a probabilidade conjunta (ou verossimilhança completa) das observações $X_1,...,X_n$ é dada por ($\theta=\left\{\mu_{1}, \ldots, \mu_{k}\right\}$):
+
+$$
+P\left(X_{1}=x_{1}, \ldots, X_{n}=x_{n}\right)= L\left(\theta | X_{1}, \ldots, X_{n}\right) = \prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} N\left(x_{i} ; \mu_{j}, 1\right)
+$$
+
+Aplicando o log na função de verossimilhança acima, obtemos:
+
+$$
+\ell(\theta)=\sum_{i=1}^{n} \log \left(\sum_{j=1}^{k} p_{j} N\left(x_{i} ; \mu_{j}, 1\right)\right)
+$$
+
+Porém não é possível resolver $\ell(\theta)$ analíticamente para $\mu_j$ pois, ao derivar em relação à $\mu_j$ e igualar à 0, chegamos a seguinte equação:
+
+$$
+\sum_{i=1}^{n} \frac{1}{\sum_{j=1}^{k} p_{j} N\left(x_{i} ; \mu_{j}, 1\right)} p_{j} N\left(x_{i} ; \mu_{j}, 1\right) \frac{\left(x_{i}-\mu_{j}\right)}{1}=0
+$$
+
+Mas como a variável latente $Z_i$ foi criada com o intuito de ajudar a encontrar os estimadores de máxima verossimilhança, vamos escrever a distribuição de $Z_i$ dada as observações $X_i$:
+
+$$
+P\left(Z_{i}=j | X_{i}\right)=\frac{P\left(X_{i} | Z_{i}=j\right) P\left(Z_{i}=j\right)}{P\left(X_{i}\right)}=\frac{p_{j} N\left(\mu_{j}, 1\right)}{\sum_{j=1}^{k} p_{j} N\left(\mu_{j}, 1\right)}=\gamma_{z_{i}}(j)
+$$
+
+Utilizando esta informação, podemos reescrever a equação derivada do $\ell(\theta)$ em respeito à $\mu_j$ como:
+
+$$
+\sum_{i=1}^{n} \gamma_{Z_{i}}(j) \frac{\left(x_{i}-\mu_{j}\right)}{1}=0
+$$
+
+Porém deixando a equação apenas escrita dessa maneira, $\gamma_{Z_{i}}(j)$ ainda depende de $\mu_j$. Porém o "truque" é supor que não são dependentes, obtendo assim o estimador para $\mu_j$:
+
+$$
+\hat{\mu_{j}}=\frac{\sum_{i=1}^{n} \gamma_{z_{i}}(j) x_{i}}{\sum_{i=1}^{n} \gamma_{z_{i}}(j)}=\frac{1}{N_{j}} \sum_{i=1}^{n} \gamma_{z_{i}}(j) x_{i},
+$$
+
+onde $N_{j}=\sum_{i=1}^{n} \gamma_{z_{i}}(j)$.
+
+Se caso a variância ou o valor das probabilidades fossem desconhecidos, o estimador de máxima verossimilhança deles seriam:
+
+$$
+\hat{\sigma}_{j}^{2}=\frac{1}{N_{j}} \sum_{i=1}^{n} \gamma_{z_{i}}(j)\left(x_{i}-\mu_{j}\right)^{2}
+$$
+
+$$
+\hat{p}_{j}=\frac{N_{j}}{n}
+$$
+
+Além disso, como enunciado na função  verossimilhança acima, o somatório em j indica de qual componente a observação $x_i$ pertence; no nosso caso, de qual componente da distribuição Normal. Além disso, $f_j(x_i|\mu_j)$ e $p_j$ dependem do índice j, porém não é uma informação conhecida; por este motivo utilizamos a variável latente $z_i=j$. Como em uma mitura podemos ter k componentes, então a variável $z_i$ precisa assumir k diferentes valores, um para cada componente. Logo, $z_i$ segue uma distribuição multinomial:
+
 $$
 X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
 $$
@@ -267,7 +320,7 @@ run_EM <- function(mean1, mean2, x, p, sd = c(1, 1), M = 100, converg = 1e-5) {
 ```
 
 ```{r}
-runs <- list(run_EM(5, -.5, x, p))
+runs <- list(run_EM(5, 3, x, p), run_EM(3, 5, x, p), run_EM(-2, -2, x, p))
 
 grid.arrange(
   nrow = 1, 
@@ -276,7 +329,8 @@ grid.arrange(
       geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
       geom_text_contour(stroke = 0.1) + 
       scale_fill_distiller(palette = "RdYlBu") + 
-      geom_path(data = runs[[1]], aes(mean1, mean2)) + 
+      geom_path(data = runs[[1]], aes(mean1, mean2), col = "lightcyan3") + 
+      geom_point(data = runs[[1]], aes(mean1, mean2), col = "lightcyan4") + 
       labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
       theme_minimal()
 )
