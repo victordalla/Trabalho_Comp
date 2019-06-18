@@ -29,14 +29,14 @@ header-includes:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  echo = TRUE, message = FALSE, warning = FALSE,
+  echo = FALSE, message = FALSE, warning = FALSE,
   # engine.path = c(r = '', pyton = ''), 
   tidy = "formatR", tidy.opts = c(width.cutoff = 60), #tidy = "styler", 
   fig.align = "center", fig.height = 5, fig.width = 7
   )
 options(
   digits = 3, 
-  OutDec = ",", 
+  OutDec = ".", 
   scipen = 4, 
   xtable.comment = FALSE
   )
@@ -69,14 +69,13 @@ Texto resumo.
 
 # Introdução
 
-- comentar misturas e abordagem bayesiana
-- ferramentas computacionais
-
 Os estatísticos que trabalham com análise e modelagem de dados atualmente estão em uma posição luxuosa de conseguir estimar, prever e inferir sobre sistemas complexos de interesse, graças a métodos computacionais cada vez mais poderosos e robustos. Modelos robustos, como os modelos de mistura, constituem uma fascinante ilustração desses aspectos: enquanto dentro de uma família paramétrica, eles oferecem aproximações maleáveis em ambientes não paramétricos e, embora baseados em distribuições padrões, eles representam desafios computacionais altamente complexos \cite{marin2005bayesian}.
 
-As distribuições de misturas compreendem um número finito ou infinito de componentes, possivelmente de diferentes tipos de distribuições, que descrevem as características dos dados. Facilitam, assim, uma descrição muito mais cuidadosa dos sistemas complexos. Por exemplo, na genética, a localização de características quantitativas em um cromossomo e a interpretação de microarranjos relacionam-se a misturas.
+As distribuições de misturas compreendem um número finito ou infinito de componentes, possivelmente de diferentes tipos de distribuições, que descrevem as características dos dados. Facilitam, assim, uma descrição muito mais cuidadosa dos sistemas complexos. Por exemplo, na genética, a localização de características quantitativas em um cromossomo e a interpretação de microarranjos relacionam-se a misturas. Essa estrutura também permite que a dificuldade de um modelo de mistura seja decomposta em um conjunto de estruturas mais simples, através do uso de variáveis latentes e do algoritmo de *Expectation Maximization* (EM).
 
-Abordagens Bayesianas à modelagem de misturas têm atraído grande interesse entre pesquisadores e praticantes. O paradigma Bayesiano permite que declarações de probabilidade sejam feitas diretamente sobre os parâmetros desconhecidos e opiniões prévias a serem incluídas na análise e modelagem do modelo. Essa estrutura também permite que a dificuldade de um modelo de mistura seja decomposta em um conjunto de estruturas mais simples, através do uso de variáveis latentes e do algoritmo de *Expectation Maximization* (EM).
+
+<!-- Abordagens Bayesianas à modelagem de misturas têm atraído grande interesse entre pesquisadores e praticantes. O paradigma Bayesiano permite que declarações de probabilidade sejam feitas diretamente sobre os parâmetros desconhecidos e opiniões prévias a serem incluídas na análise e modelagem do modelo.  -->
+
 
 # Mistura finita
 
@@ -92,13 +91,15 @@ $$
 \sum_{i=1}^{k} p_{i} f\left(x | \theta_{i}\right)
 $$
 
-Além disso, o comportamento da cauda de uma mistura é sempre descrito por um ou dois de seus componentes e que, portanto, deve refletir a escolha da família paramétrica $f\left(.| \theta_{i}\right)$. Note também que a representação de misturas como combinações convexas de distribuições implica na propriedade de cálculo dos momentos: 
+Além disso, o comportamento da cauda de uma mistura é sempre descrito por um ou dois de seus componentes e que, portanto, deve refletir a escolha da família paramétrica $f\left(.| \theta_{i}\right)$. A verossimilhança $\mathbb{L}(\theta, p | x)=\prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} f\left(x_{i} | \theta_{j}\right)$ de uma mistura de k distribuições tem $k^n$ termos, o que impossibilita alguma solução analítica.
 
-$$\mathbb{E}\left[X^{m}\right]=\sum_{i=1}^{k} p_{i} \mathbb{E}^{f_{i}}\left[X^{m}\right]$$
 
-A verossimilhança $\mathbb{L}(\underline{\theta}, \underline{p} | \underline{x})=\prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} f\left(x_{i} | \theta_{j}\right)$ de uma mistura de k distribuições tem $k^n$ termos, o que impossibilita alguma solução analítica.
+<!-- Note também que a representação de misturas como combinações convexas de distribuições implica na propriedade de cálculo dos momentos:  -->
 
-## Algoritmo
+<!-- $$\mathbb{E}\left[X^{m}\right]=\sum_{i=1}^{k} p_{i} \mathbb{E}^{f_{i}}\left[X^{m}\right]$$ -->
+
+
+## Algoritmo EM
 
 Queremos encontrar o estimador de máxima verossimilhança (no contexto frequentista) ou o estimador máximo a posteriori (no contexto bayesiano), ou seja, em uma notação simplificada, queremos
 
@@ -255,39 +256,6 @@ logmixnorm_complete <- function(x, z, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1,
 }
 ```
 
-
-## p conhecido
-
-Foi gerada uma amostra de tamanho $n=500$ da mistura gaussiana $p N\left(\mu_{1}, 1\right)+(1-p) \mathcal{N}\left(\mu_{2}, 1\right)$, com $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$. A Figura \ref{fig:graf1} apresenta uma curva de nível log-verossimilhança no dados.
-
-```{r data, results='hide'}
-n <- 500
-mean <- c(0, 2.5)
-p <- c(0.7, 0.3)
-sd = c(1, 1)
-set.seed(42)
-x <- rmixnorm(n, mean, p)
-
-grid_space <- 0.2
-grid <- expand.grid(
-  mu1 = seq(from = -3, to = 7, by = grid_space), 
-  mu2 = seq(from = -3, to = 7, by = grid_space)
-  )
-grid$log_lik <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm_incomplete(x, c(mu1, mu2), p))
-```
-
-```{r graf1, echo = FALSE, fig.pos = "H", fig.cap= "Gráfico da curva de nível log-verossimilhança"}
-ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
-  geom_raster(aes(fill = log_lik)) + 
-  geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
-  geom_text_contour(stroke = 0.1) + 
-  scale_fill_distiller(palette = "RdYlBu") + 
-  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
-  theme_minimal()
-```
-
-Com o objetivo de avaliar a performance do algoritmo EM, cinco execuções foram feitas com pontos inciais $\mu_1^{(0)} = ...$ e $\mu_2^{(0)} = ...$.
-
 ```{r em}
 run_EM <- function(mean1, mean2, x, p, sd = c(1, 1), M = 100, converg = 1e-5) {
   result <- tibble(it = numeric(M), log_lik = numeric(M), mean1 = numeric(M), mean2 = numeric(M))
@@ -319,23 +287,64 @@ run_EM <- function(mean1, mean2, x, p, sd = c(1, 1), M = 100, converg = 1e-5) {
 }
 ```
 
-```{r}
-runs <- list(run_EM(5, 3, x, p), run_EM(3, 5, x, p), run_EM(-2, -2, x, p))
+```{r data, echo=FALSE}
+n <- 500
+mean <- c(0, 2.5)
+p <- c(0.7, 0.3)
+sd <- c(1, 1)
+set.seed(42)
+x <- rmixnorm(n, mean, p)
 
-grid.arrange(
-  nrow = 1, 
-  ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
-      geom_raster(aes(fill = log_lik)) + 
-      geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
-      geom_text_contour(stroke = 0.1) + 
-      scale_fill_distiller(palette = "RdYlBu") + 
-      geom_path(data = runs[[1]], aes(mean1, mean2), col = "lightcyan3") + 
-      geom_point(data = runs[[1]], aes(mean1, mean2), col = "lightcyan4") + 
-      labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
-      theme_minimal()
-)
+grid_space <- 0.2
+grid <- expand.grid(
+  mu1 = seq(from = -3, to = 7, by = grid_space), 
+  mu2 = seq(from = -3, to = 7, by = grid_space)
+  )
+grid$log_lik <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm_incomplete(x, c(mu1, mu2), p, sd))
 ```
 
+
+Foi gerada uma amostra de tamanho $n=500$ da mistura gaussiana $p N\left(\mu_{1}, 1\right)+(1-p) \mathcal{N}\left(\mu_{2}, 1\right)$, com $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$. A Figura \ref{fig:logvero} apresenta uma curva de nível log-verossimilhança no dados. Note que essa função tem duas modas: uma representa a máxima verossimilhança (próxima de $(\mu_1=0, \mu_2=2.5)$) e a outra é espúria (próxima de $(\mu_1=1, \mu_2=3)$). Isso representa uma dificuldade para qualquer algoritmo de otimização de função.
+
+```{r graf1, fig.pos = "H", fig.cap="Gráfico da curva de nível log-verossimilhança\\label{fig:logvero}"}
+ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
+  geom_raster(aes(fill = log_lik)) + 
+  geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
+  geom_text_contour(stroke = 0.1) + 
+  scale_fill_distiller(palette = "RdYlBu") + 
+  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
+  theme_minimal()
+```
+
+Com o objetivo de avaliar a performance do algoritmo EM, cinco execuções foram feitas com pontos inciais $(\mu_1^{(0)}, \mu_1^{(0)}) = (5, 3), (3, 5), (-2, -2)$. A Figura \ref{fig:caminhoem} apresenta os caminhos tomados pelo algoritmo EM para esses valores iniciais. Ela ilustra três situações gerais:
+
+1. Pontos iniciais próximos de $(\mu_1=0, \mu_2=2.5)$ levam o EM para o máximo correto.
+2. Pontos iniciais próximos de $(\mu_1=1, \mu_2=3)$ levam o EM para o máximo espúrio.
+3. Pontos iniciais na reta $\mu_1=\mu_2$ levam o EM para o ponto de cela ao redor de $(1.71, 1.71)$.
+
+Isso significa que o ponto incial do EM não deve ser escolhido de maneira arbitrária: o ponto inicial deve estar próximo da estimativa procurada. Portanto, se não há indícios de que $\mu_1=\mu_2$, o ponto incial não deveria pertencer à reta $\mu_1=\mu_2$.
+
+```{r, fig.pos = "H", fig.cap="Gráfico da curva de nível log-verossimilhança com os caminhos do EM para diversos valores iniciais de $(\mu_1, \mu_2)$\\label{fig:caminhoem}"}
+runs <- list(run_EM(5, 3, x, p, sd), run_EM(3, 5, x, p, sd), run_EM(-2, -2, x, p, sd))
+
+ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
+  geom_raster(aes(fill = log_lik)) + 
+  geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
+  geom_text_contour(stroke = 0.1) + 
+  scale_fill_distiller(palette = "RdYlBu") + 
+  
+  geom_path(data = runs[[1]], aes(mean1, mean2), col = "aquamarine3") + 
+  geom_point(data = runs[[1]], aes(mean1, mean2), col = "aquamarine4") + 
+  
+  geom_path(data = runs[[2]], aes(mean1, mean2), col = "gold2") + 
+  geom_point(data = runs[[2]], aes(mean1, mean2), col = "gold3") + 
+  
+  geom_path(data = runs[[3]], aes(mean1, mean2), col = "green2") + 
+  geom_point(data = runs[[3]], aes(mean1, mean2), col = "green3") + 
+  
+  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
+    theme_minimal()
+```
 
 
 # Conclusão
