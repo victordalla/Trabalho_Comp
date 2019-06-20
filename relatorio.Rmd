@@ -79,7 +79,7 @@ As distribuições de misturas compreendem um número finito ou infinito de comp
 
 # Mistura finita
 
-A descrição de uma mistura de distribuições é simples: qualquer combinação convexa de outras distribuições $f_i$ é uma mistura, como mostra a combinação abaixo:
+A descrição de uma mistura de distribuições é simples: uma combinação convexa de distribuições $f_i$. Em termos matemáticos:
 
 $$
 \quad \sum_{i=1}^{k} p_{i} f_{i}(x), \quad \sum_{i=1}^{k} p_{i}=1, \quad k>1
@@ -91,25 +91,37 @@ $$
 \sum_{i=1}^{k} p_{i} f\left(x | \theta_{i}\right)
 $$
 
-Além disso, o comportamento da cauda de uma mistura é sempre descrito por um ou dois de seus componentes e que, portanto, deve refletir a escolha da família paramétrica $f\left(.| \theta_{i}\right)$. A verossimilhança $\mathbb{L}(\theta, p | x)=\prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} f\left(x_{i} | \theta_{j}\right)$ de uma mistura de k distribuições tem $k^n$ termos, o que impossibilita alguma solução analítica.
+Além disso, o comportamento da cauda de uma mistura é sempre descrito por um ou dois de seus componentes e que, portanto, deve refletir a escolha da família paramétrica $f\left(.| \theta_{i}\right)$. A verossimilhança $L(\theta, p | x)=\prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} f\left(x_{i} | \theta_{j}\right)$ de uma mistura de k distribuições tem $k^n$ termos, o que impossibilita alguma solução analítica. A verossimilhança pode ser entendida como uma posteriori em um contexto Bayesiano. No entanto, normalmente a família escolhida para $f$ possui prioris pseudo-conjugadas. Por isso, virtualmente qualquer resultado analisado aqui é válido para o caso Bayesiano.
 
 
-<!-- Note também que a representação de misturas como combinações convexas de distribuições implica na propriedade de cálculo dos momentos:  -->
+## Variáveis latentes
 
-<!-- $$\mathbb{E}\left[X^{m}\right]=\sum_{i=1}^{k} p_{i} \mathbb{E}^{f_{i}}\left[X^{m}\right]$$ -->
+Além disso, como enunciado na função  verossimilhança acima, o somatório em $j$ indica de qual componente a observação $x_i$ pertence; nesse caso, de qual componente da distribuição Normal. Além disso, $\mathcal{N}(x_i;\mu_j, 1)$ e $p_j$ dependem do índice $j$, porém não é uma informação conhecida; por este motivo utilizamos a variável latente $z_i=j$. Como em uma mitura podemos ter $k$ componentes, então a variável $z_i$ precisa assumir $k$ diferentes valores, um para cada componente. Logo, $z_i$ segue uma distribuição multinomial:
+
+$$
+X_{i}\left|Z_{i} \sim \mathcal{N}\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
+$$
+
+A probabilidade marginal da observação $x_i$ vir de um modelo de mistura k pode ser escrito como:
+
+$$
+P\left(X_{i}=x\right)=\sum_{j=1}^{k} P\left(Z_{i}=j\right) P\left(X_{i}=x | Z_{i}=j\right)
+$$
+
+onde $Z_{i} \in\{1, \ldots, k\}$ é a variável latente que determina de qual componente da mistura $x_i$ foi amostrado e $P\left(Z_{i}=j\right) = p_j$ é a probabilidade de $x_i$ pertencer ao k-ésimo componente da mistura.
 
 
-## Algoritmo EM
+# Expectation Maximization
 
 Queremos encontrar o estimador de máxima verossimilhança (no contexto frequentista) ou o estimador máximo a posteriori (no contexto bayesiano), ou seja, em uma notação simplificada, queremos
 
 $$
-\hat{\theta} = \arg \max _{\theta} \mathbb{L}(\theta | x)
+\hat{\theta} = \arg \max _{\theta} L(\theta | x)
 $$
 
-Onde $\theta$ são os parâmetros da distribuiçao de $x$ e $\mathbb{L}$ é a verossimilhança ou a posteriori dos parâmetros nos dados observados $x$.
+Onde $\theta$ são os parâmetros da distribuiçao de $x$ e $L$ é a verossimilhança.
 
-Apesar de existir métodos numéricos para o cômputo de máximos de função, é possível que a forma de $\mathbb{L}(\theta | x)$ sejá difícil de ser computada ou numericamente instável. O algoritmo EM é um método iterativo que pode ser capaz de otimizar $\mathbb{L}$ através da otimização de uma função (esperada ser) mais simples $Q\left(\theta | \theta^{(t-1)}, x\right)$.
+Apesar de existir métodos numéricos para o cômputo de máximos de função, é possível que a forma de $L(\theta | x)$ seja difícil de ser computada ou numericamente instável. O algoritmo EM é um método iterativo que pode ser capaz de otimizar $L$ através da otimização de uma função (esperada ser) mais simples $Q\left(\theta | \theta^{(t-1)}, x\right)$.
 
 ### Algoritmo EM
 
@@ -120,7 +132,7 @@ Apesar de existir métodos numéricos para o cômputo de máximos de função, �
 1.1 Passo E: calcule 
 
 $$ 
-Q\left(\theta | \theta^{(t-1)}, x\right) = \mathbb{E}\left[\log \mathbb{L}(\theta | x, Z) | \theta^{(t-1)}, x \right], \quad Z \sim k\left(z | \theta^{(t-1)}, x\right)
+Q\left(\theta | \theta^{(t-1)}, x\right) = \mathbb{E}\left[\log L(\theta | x, Z) | \theta^{(t-1)}, x \right], \quad Z \sim k\left(z | \theta^{(t-1)}, x\right)
 $$
 
 1.2 Passo M: maximize $Q$ e tome 
@@ -129,102 +141,89 @@ $$
 \theta^{(t)} = \arg \max _{\theta} Q\left(\theta | \theta^{(t-1)}, x\right)
 $$
 
-O critério de convergência pode ser: pare quando $\left| \frac{\mathbb{L}(\theta^{t} | x, Z) - \mathbb{L}(\theta^{t-1} | x, Z)}{\mathbb{L}(\theta^{t-1} | x, Z)} \right| < \epsilon$.
+O critério de convergência pode ser: pare quando $\left| \frac{L(\theta^{t} | x, Z) - L(\theta^{t-1} | x, Z)}{L(\theta^{t-1} | x, Z)} \right| < \epsilon$.
+
 
 ## EM para misturas gaussianas
 
-A probabilidade marginal da observação $x_i$ vir de um modelo de mistura k pode ser escrito como:
+Se $X$ é v.a. de uma mistura gaussiana, então
 
 $$
-P\left(X_{i}=x\right)=\sum_{j=1}^{k} p_{j} P\left(X_{i}=x | Z_{i}=j\right)
+P\left(X=x\right) = \sum_{j=1}^{k} p_{j} \mathcal{N}\left(x ; \mu_{j}, 1\right)
 $$
 
-onde $Z_{i} \in\{1, \ldots, k\}$ é a variável latente que representa o componente da mistura para $x_i$; $P\left(X_{i} | Z_{i}\right.)$ indica a mistura e $p_j$ é a probabilidade de $x_i$ pertencer ao k-ésimo componente da mistura. Como neste caso estamos interessados em misturas Gaussianas, então $X_{i} | Z_{i}=j \sim N\left(\mu_{j}, 1\right)$, podendo escrever a distribuição marginal de $x_i$ da seguinte maneira:
+E a probabilidade conjunta (ou verossimilhança completa) das observações $X_1,...,X_n$, supondo independência, é dada por:
 
 $$
-P\left(X_{i}=x\right)=\sum_{j=1}^{k} P\left(Z_{i}=j\right) P\left(X_{i}=x | Z_{i}=j\right)=\sum_{j=1}^{k} p_{j} N\left(x ; \mu_{j}, 1\right)
+P\left(X_{1}=x_{1}, \ldots, X_{n}=x_{n}\right)= L\left(\theta | X_{1}, \ldots, X_{n}\right) = \prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} \mathcal{N}\left(x_{i} ; \mu_{j}, 1\right)
 $$
 
-
-Então, a probabilidade conjunta (ou verossimilhança completa) das observações $X_1,...,X_n$ é dada por ($\theta=\left\{\mu_{1}, \ldots, \mu_{k}\right\}$):
-
-$$
-P\left(X_{1}=x_{1}, \ldots, X_{n}=x_{n}\right)= L\left(\theta | X_{1}, \ldots, X_{n}\right) = \prod_{i=1}^{n} \sum_{j=1}^{k} p_{j} N\left(x_{i} ; \mu_{j}, 1\right)
-$$
-
-Aplicando o log na função de verossimilhança acima, obtemos:
+Tomando o logritmo da função de verossimilhança acima, obtemos:
 
 $$
-\ell(\theta)=\sum_{i=1}^{n} \log \left(\sum_{j=1}^{k} p_{j} N\left(x_{i} ; \mu_{j}, 1\right)\right)
+\ell(\theta)=\sum_{i=1}^{n} \log \left(\sum_{j=1}^{k} p_{j} \mathcal{N}\left(x_{i} ; \mu_{j}, 1\right)\right)
 $$
 
-Porém não é possível resolver $\ell(\theta)$ analíticamente para $\mu_j$ pois, ao derivar em relação à $\mu_j$ e igualar à 0, chegamos a seguinte equação:
+Porém não é possível resolver $\ell(\theta)$ analiticamente para $\mu_j$: igualando o gradiente de $\ell(\theta)$ a zero, obtém-se as seguintes equações:
 
 $$
-\sum_{i=1}^{n} \frac{1}{\sum_{j=1}^{k} p_{j} N\left(x_{i} ; \mu_{j}, 1\right)} p_{j} N\left(x_{i} ; \mu_{j}, 1\right) \frac{\left(x_{i}-\mu_{j}\right)}{1}=0
+\sum_{i=1}^{n} \frac{1}{\sum_{j=1}^{k} p_{j} \mathcal{N}\left(x_{i} ; \mu_{j}, 1\right)} p_{j} \mathcal{N}\left(x_{i} ; \mu_{j}, 1\right) \frac{\left(x_{i}-\mu_{j}\right)}{\sigma_{j}^2}=0, \qquad j = 1, ..., k
 $$
 
-Mas como a variável latente $Z_i$ foi criada com o intuito de ajudar a encontrar os estimadores de máxima verossimilhança, vamos escrever a distribuição de $Z_i$ dada as observações $X_i$:
+Portanto, faz-se necessário o uso do algoritmo EM. Para tanto, é preciso determinar a distribuição de $Z \sim k\left(z | \mu_1, ..., \mu_k, x\right)$. Condicionando em $X_i$ e usando a independência dos dados, encontra-se
 
 $$
-P\left(Z_{i}=j | X_{i}\right)=\frac{P\left(X_{i} | Z_{i}=j\right) P\left(Z_{i}=j\right)}{P\left(X_{i}\right)}=\frac{p_{j} N\left(\mu_{j}, 1\right)}{\sum_{j=1}^{k} p_{j} N\left(\mu_{j}, 1\right)}=\gamma_{z_{i}}(j)
+P\left(Z_{i}=j | X_{i}\right)=\frac{P\left(X_{i} | Z_{i}=j\right) P\left(Z_{i}=j\right)}{P\left(X_{i}\right)}=\frac{p_{j} \mathcal{N}\left(\mu_{j}, 1\right)}{\sum_{j=1}^{k} p_{j} \mathcal{N}\left(\mu_{j}, 1\right)}=\gamma_{Z_{i}}(j)
 $$
 
-Utilizando esta informação, podemos reescrever a equação derivada do $\ell(\theta)$ em respeito à $\mu_j$ como:
+Utilizando esta informação, podemos reescrever a equação do gradiente como
 
 $$
-\sum_{i=1}^{n} \gamma_{Z_{i}}(j) \frac{\left(x_{i}-\mu_{j}\right)}{1}=0
+\sum_{i=1}^{n} \gamma_{Z_{i}}(j) \frac{\left(x_{i}-\mu_{j}\right)}{\sigma_{j}^2}=0
 $$
 
-Porém deixando a equação apenas escrita dessa maneira, $\gamma_{Z_{i}}(j)$ ainda depende de $\mu_j$. Porém o "truque" é supor que não são dependentes, obtendo assim o estimador para $\mu_j$:
+Resolvendo para $\mu_j$, obtém-se um estimador $\hat{\mu_{j}}$ para $\mu_j$:
 
 $$
-\hat{\mu_{j}}=\frac{\sum_{i=1}^{n} \gamma_{z_{i}}(j) x_{i}}{\sum_{i=1}^{n} \gamma_{z_{i}}(j)}=\frac{1}{N_{j}} \sum_{i=1}^{n} \gamma_{z_{i}}(j) x_{i},
+\hat{\mu}_{j}=\frac{\sum_{i=1}^{n} x_{i} \gamma_{Z_{i}}(j)}{\sum_{i=1}^{n} \gamma_{Z_{i}}(j)}=\frac{1}{N_{j}} \sum_{i=1}^{n} x_{i} \gamma_{Z_{i}}(j),
 $$
 
 onde $N_{j}=\sum_{i=1}^{n} \gamma_{z_{i}}(j)$.
 
-Se caso a variância ou o valor das probabilidades fossem desconhecidos, o estimador de máxima verossimilhança deles seriam:
+Caso as variâncias e os valores das probabilidades fossem desconhecidos, os estimadores de máxima verossimilhança são facilmente calculados no modelo de variáveis latentes e poderiam ser incorporados no EM:
 
 $$
-\hat{\sigma}_{j}^{2}=\frac{1}{N_{j}} \sum_{i=1}^{n} \gamma_{z_{i}}(j)\left(x_{i}-\mu_{j}\right)^{2}
+\hat{\sigma}_{j}^{2}=\frac{1}{N_{j}} \sum_{i=1}^{n} \gamma_{Z_{i}}(j)\left(x_{i}-\mu_{j}\right)^{2}, \qquad \hat{p}_{j}=\frac{N_{j}}{n}
 $$
 
-$$
-\hat{p}_{j}=\frac{N_{j}}{n}
-$$
-
-Além disso, como enunciado na função  verossimilhança acima, o somatório em j indica de qual componente a observação $x_i$ pertence; no nosso caso, de qual componente da distribuição Normal. Além disso, $f_j(x_i|\mu_j)$ e $p_j$ dependem do índice j, porém não é uma informação conhecida; por este motivo utilizamos a variável latente $z_i=j$. Como em uma mitura podemos ter k componentes, então a variável $z_i$ precisa assumir k diferentes valores, um para cada componente. Logo, $z_i$ segue uma distribuição multinomial:
-
-$$
-X_{i}\left|Z_{i}=z \sim f\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
-$$
-
+Note que os estimadores acima dependem de $N_j$ e $\gamma_{Z_{i}}(j)$, que por sua vez são funções da variável latente não observada $Z$. Para contornar esse problema, é razoável tomar seu valor esperado. No entanto, esse valor depende de $\mu_1, ..., \mu_k$, que também são desconhecidos. O algoritmo EM contorna esse problema através de um processo iterativo, descrito antriormente e desenvolvido aqui de maneira intuitiva. $\mathbb{E}(Z_1), ..., \mathbb{E}(Z_n)$ são calculados por valores iniciais de $\mu_1, ..., \mu_k$. De posse desses valores, é possível calcular $\hat{\mu}_1, ..., \hat{\mu}_k$ e essas estimativas são usados para obter aproximações melhores de $\mathbb{E}(Z_1), ..., \mathbb{E}(Z_n)$, que por sua vez serão usados para melhorar as estimativas $\hat{\mu}_1, ..., \hat{\mu}_k$, num processo iterativo.
 
 # Simulação
+
+Os pacotes utilizados neste trabalho foram: `dplyr` (para manipulação de \textit{data frames}), `ggplot2` (para criação de gráficos), e `metR` (para o desenho de curvas de níveis).
 
 ```{r lib}
 library(dplyr)
 library(ggplot2)
-library(gridExtra)
-library(purrr)
 library(metR)
 ```
 
-```{r functions}
-rz <- function(n, p = c(0.5, 0.5)) {
+As funções definidas abaixo são utilizadas extensivamente por toda a análise. A função `rz` gera valores aleatório de $Z = 1 \text{, com probabilidade } p \text{ e } Z=2 \text{ com probabilidade } 1-p$; `dz` calcula $P(Z=k | X)$; `rmixnorm` gera valores aleatórios de uma mistura gaussiana de duas componentes e `logmixnorm_incomplete` calcula $L(\mu_1, \mu_2 | x)$.
+
+```{r functions, echo=TRUE}
+rz <- function(n, p) {
   rbinom(n, 1, p[1]) + 1
 }
-# P(Z = k|x)
-dz <- function(k, x, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
-  p[k] * dnorm(x, mean[k], sd[k]) / 
-    purrr::map_dbl(
-      x, 
-      function(x) sum(p[1]*dnorm(x, mean[1], sd[1]) + p[2]*dnorm(x, mean[2], sd[2]))
-    )
+
+dz <- function(k, x, mean, p, sd) {
+  total <- numeric(length(x))
+  for (i in 1:length(x)) {
+    total[i] <- p[1]*dnorm(x[i], mean[1], sd[1]) + p[2]*dnorm(x[i], mean[2], sd[2])
+  }
+  p[k] * dnorm(x, mean[k], sd[k]) / total
 }
 
-rmixnorm <- function(n, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
+rmixnorm <- function(n, mean, p, sd) {
   if (length(sd) != 2 || length(p) != 2 || length(sd) != 2) stop("Tamanhos de mean, p e sd devem ser 2")
   if (sum(p) != 1) stop("Probabilidades de p não somam 1")
   
@@ -232,91 +231,81 @@ rmixnorm <- function(n, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
   rnorm(n, mean[z], sd[z])
 }
 
-logmixnorm_incomplete <- function(x, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
-  if (length(sd) != 2 || length(p) != 2 || length(sd) != 2) stop("Tamanhos de mean, p e sd devem ser 2")
-  if (sum(as_vector(p)) != 1) stop("Probabilidades de p não somam 1")
-  
-  sum(log(p[1]*dnorm(x, mean[1], sd[1]) + p[2]*dnorm(x, mean[2], sd[2])))
-}
-
-logmixnorm_complete <- function(x, z, mean = c(0, 0), p = c(0.5, 0.5), sd = c(1, 1)) {
+logmixnorm_incomplete <- function(x, mean, p, sd) {
   if (length(sd) != 2 || length(p) != 2 || length(sd) != 2) stop("Tamanhos de mean, p e sd devem ser 2")
   if (sum(p) != 1) stop("Probabilidades de p não somam 1")
   
-  sum(purrr::map2_dbl(
-    x, z,
-    function(x, z) log(p[z]) + dnorm(x, mean[z], sd[z], log = TRUE)
-    ))
-  
-  # sum <- 0
-  # for (i in 1:n) {
-  #   sum <- sum + log(p[z[i]]) + dnorm(x[i], mean[z[i]], sd[z[i]], log = TRUE)
-  # }
-  # sum
+  sum(log(p[1]*dnorm(x, mean[1], sd[1]) + p[2]*dnorm(x, mean[2], sd[2])))
 }
 ```
 
-```{r em}
-run_EM <- function(mean1, mean2, x, p, sd = c(1, 1), M = 100, converg = 1e-5) {
-  result <- tibble(it = numeric(M), log_lik = numeric(M), mean1 = numeric(M), mean2 = numeric(M))
-  # valores iniciais
-  mean <- c(mean1, mean2)
-  log_lik <- logmixnorm_incomplete(x, mean, p, sd)
-  delta <- abs(log_lik)
-  for (i in 1:M) {
-    if (delta < converg) {
-      message(paste("converged at iteration", i))
-      break
-    }
-    
-    # guarda resultado
-    result[i, ] <- c(i, log_lik, mean[1], mean[2])
-    
-    # update mean
-    expct <- list(dz(rep(1, length(x)), x, mean, p), dz(rep(2, length(x)), x, mean, p))
-    mean <- c(sum(x * expct[[1]]), sum(x * expct[[2]])) / 
-      c(sum(expct[[1]]), sum(expct[[2]]))
-    
-    # update critério de parada
-    delta <- abs((log_lik - logmixnorm_incomplete(x, mean, p, sd)) / log_lik)
-    log_lik <- logmixnorm_incomplete(x, mean, p, sd)
-  }
-  
-  if (i == M) warning(paste("log_lik doesn't converged after ", M, "steps with converg="), converg)
-  filter(result, it > 0)
-}
-```
 
-```{r data, echo=FALSE}
+Considere uma amostra $x$ de tamanho $n=500$ da mistura gaussiana $p \mathcal{N}\left(\mu_{1}, 1\right)+(1-p) \mathcal{N}\left(\mu_{2}, 1\right)$, com $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$, como gerada no bloco de código abaixo. A Figura \ref{fig:logvero} apresenta uma curva de nível da log-verossimilhança no dados. Note que essa função tem duas modas: uma representa a máxima verossimilhança (próxima de $(\mu_1=0, \mu_2=2.5)$) e a outra é espúria (próxima de $(\mu_1=1, \mu_2=3)$). Isso representa uma dificuldade para qualquer algoritmo de otimização de função.
+
+```{r data, echo=TRUE}
 n <- 500
 mean <- c(0, 2.5)
 p <- c(0.7, 0.3)
 sd <- c(1, 1)
 set.seed(42)
-x <- rmixnorm(n, mean, p)
+x <- rmixnorm(n, mean, p, sd)
+```
 
+
+```{r logvero, fig.pos = "H", fig.cap="Gráfico da curva de nível log-verossimilhança. O ponto é (0, 2.5), que é próximo da máxima verossimilhança.\\label{fig:logvero}"}
 grid_space <- 0.2
 grid <- expand.grid(
   mu1 = seq(from = -3, to = 7, by = grid_space), 
   mu2 = seq(from = -3, to = 7, by = grid_space)
   )
-grid$log_lik <- map2_dbl(grid$mu1, grid$mu2, function(mu1, mu2) logmixnorm_incomplete(x, c(mu1, mu2), p, sd))
-```
+grid$log_lik <- numeric(nrow(grid))
+for (i in 1:nrow(grid)) {
+  grid$log_lik[i] <- logmixnorm_incomplete(x, c(grid$mu1[i], grid$mu2[i]), p, sd)
+}
 
-
-Foi gerada uma amostra de tamanho $n=500$ da mistura gaussiana $p N\left(\mu_{1}, 1\right)+(1-p) \mathcal{N}\left(\mu_{2}, 1\right)$, com $\left(\mu_{1}, \mu_{2}, p\right)=(0,2.5,0.7)$. A Figura \ref{fig:logvero} apresenta uma curva de nível log-verossimilhança no dados. Note que essa função tem duas modas: uma representa a máxima verossimilhança (próxima de $(\mu_1=0, \mu_2=2.5)$) e a outra é espúria (próxima de $(\mu_1=1, \mu_2=3)$). Isso representa uma dificuldade para qualquer algoritmo de otimização de função.
-
-```{r graf1, fig.pos = "H", fig.cap="Gráfico da curva de nível log-verossimilhança\\label{fig:logvero}"}
 ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
   geom_raster(aes(fill = log_lik)) + 
   geom_contour2(lineend = "round", linejoin = "round", binwidth = 100, col = "white") + 
   geom_text_contour(stroke = 0.1) + 
   scale_fill_distiller(palette = "RdYlBu") + 
-  labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
+  annotate("point", x = 2.5, y = 0, col = "aquamarine3") + 
+  coord_flip() + 
+  labs(x = expression(mu[2]), y = expression(mu[1]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
   theme_minimal()
 ```
 
-Com o objetivo de avaliar a performance do algoritmo EM, cinco execuções foram feitas com pontos inciais $(\mu_1^{(0)}, \mu_1^{(0)}) = (5, 3), (3, 5), (-2, -2)$. A Figura \ref{fig:caminhoem} apresenta os caminhos tomados pelo algoritmo EM para esses valores iniciais. Ela ilustra três situações gerais:
+O bloco de código abaixo define uma função que performa o algoritmo EM para uma mistura gaussiana de dois componentes. Ela requer valores iniciais `mean1` e `mean2` e termina a execução quando o critério de parada $\left| \frac{\mathbb{L}(\theta^{t} | x, Z) - \mathbb{L}(\theta^{t-1} | x, Z)}{\mathbb{L}(\theta^{t-1} | x, Z)} \right| < \text{converg}, \text{converg}=10^{-5}$ é satisfeito ou o número máximo de iterações $M=100$ é excedido.
+
+```{r em, echo=TRUE}
+run_EM <- function(mean1, mean2, x, p, sd, M = 100, converg = 1e-5) {
+  result <- tibble(it = numeric(M), log_lik = numeric(M), mean1 = numeric(M), mean2 = numeric(M))
+  # valores iniciais
+  mean <- c(mean1, mean2)
+  log_lik <- logmixnorm_incomplete(x, mean, p, sd)
+  if (is.infinite(log_lik)) stop(paste("Log verossimilhança em (", mean1, ", ", mean2, ") não é finita"))
+  if (is.na(log_lik)) stop(paste("Log verossimilhança em (", mean1, ", ", mean2, ") retornou NA"))
+  delta <- abs(log_lik)
+  for (i in 1:M) {
+    if (delta < converg) {
+      message(paste("Log verossimilhança convergiu na iteração", i))
+      break
+    }
+    
+    result[i, ] <- c(i, log_lik, mean[1], mean[2])
+    
+    expct <- list(dz(rep(1, length(x)), x, mean, p, sd), dz(rep(2, length(x)), x, mean, p, sd))
+    mean <- c(sum(x * expct[[1]]), sum(x * expct[[2]])) / c(sum(expct[[1]]), sum(expct[[2]]))
+    
+    delta <- abs((log_lik - logmixnorm_incomplete(x, mean, p, sd)) / log_lik)
+    log_lik <- logmixnorm_incomplete(x, mean, p, sd)
+  }
+  
+  if (i == M) warning(paste("Log verossimilhança não convergiu após número máximo M=", M, "de iterações com converg="), converg)
+  filter(result, it > 0)
+}
+```
+
+Com o objetivo de avaliar a performance do algoritmo EM, três execuções foram feitas com pontos inciais $(\mu_1^{(0)}, \mu_1^{(0)}) = (5, 3), (3, 5), (-2, -2)$. A Figura \ref{fig:caminhoem} apresenta os caminhos tomados pelo algoritmo EM para esses valores iniciais. Ela ilustra três situações gerais:
 
 1. Pontos iniciais próximos de $(\mu_1=0, \mu_2=2.5)$ levam o EM para o máximo correto.
 2. Pontos iniciais próximos de $(\mu_1=1, \mu_2=3)$ levam o EM para o máximo espúrio.
@@ -324,7 +313,7 @@ Com o objetivo de avaliar a performance do algoritmo EM, cinco execuções foram
 
 Isso significa que o ponto incial do EM não deve ser escolhido de maneira arbitrária: o ponto inicial deve estar próximo da estimativa procurada. Portanto, se não há indícios de que $\mu_1=\mu_2$, o ponto incial não deveria pertencer à reta $\mu_1=\mu_2$.
 
-```{r, fig.pos = "H", fig.cap="Gráfico da curva de nível log-verossimilhança com os caminhos do EM para diversos valores iniciais de $(\mu_1, \mu_2)$\\label{fig:caminhoem}"}
+```{r, fig.pos = "H", fig.cap="Gráfico da curva de nível log-verossimilhança com os caminhos do EM para diversos valores iniciais de $(\\mu_1, \\mu_2)$\\label{fig:caminhoem}"}
 runs <- list(run_EM(5, 3, x, p, sd), run_EM(3, 5, x, p, sd), run_EM(-2, -2, x, p, sd))
 
 ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) + 
@@ -342,6 +331,7 @@ ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) +
   geom_path(data = runs[[3]], aes(mean1, mean2), col = "green2") + 
   geom_point(data = runs[[3]], aes(mean1, mean2), col = "green3") + 
   
+  coord_flip() + 
   labs(x = expression(mu[1]), y = expression(mu[2]), fill = expression(paste("l(", c(mu, p), "|", x, ")"))) + 
     theme_minimal()
 ```
