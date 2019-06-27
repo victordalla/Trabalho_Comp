@@ -343,9 +343,9 @@ ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) +
 
 # Conclusão
 
-Os resultados da simulação mostram que a utilização do algoritmo EM para mistura gaussiana é muito influenciado pelo valor inicial, pois dependendo dele, a estimativa do algoritmo acaba caindo em um máximo local ou ponto de cela. Logo, uma maneira de contorná-lo é iniciar com valores próximos do que se espera ser o máximo global (utilizando informações à priori e análises estatísticas), testando o algoritmo para uma variedade de valores iniciais e comparar a verossimilhança de cada estimação. 
+Os resultados da simulação mostram que a utilização do algoritmo EM para misturas é sensível ao valor inicial, pois a estimativa do algoritmo pode resultar em um máximo local ou ponto de cela a depender do ponto incial. Logo, é importante iniciar o algoritmo com valores próximos do que se espera ser o máximo global, utilizando para isso, por exemplo, informações à priori e análises sobre as observções. Uma sugestão, portanto, é executar o algoritmo para uma variedade de valores iniciais e analisar a verossimilhança de cada resultado.
 
-Alem disso no caso de mistura gaussiana de duas componentes observa-se que para pontos inicias na reta identidade o algoritmo converge para um ponto de cela.
+Além disso, para misturaa gaussianaa de duas componentes, conjectura-se que a reta identidade leva a um ponto de cela da verossimilhança, isto é, pontos inciais na reta identidade resultam em uma estimativa no ponto de cela, também pertencente à reta identidade. Apesar disso, como exposto acima, o ponto incial deveria refletir informações disponíveis para o estatístico, o que significa que isso, em teoria, não seria um problema, já que a modelagem por mistura normalamente não se faz adequada para dados unimodais.
 
 # Referências
 
