@@ -96,17 +96,19 @@ Além disso, o comportamento da cauda de uma mistura é sempre descrito por um o
 
 ## Variáveis latentes
 
-Além disso, como enunciado na função  verossimilhança acima, o somatório em $j$ indica de qual componente a observação $x_i$ pertence; nesse caso, de qual componente da distribuição Normal. Além disso, $\mathcal{N}(x_i;\mu_j, 1)$ e $p_j$ dependem do índice $j$, porém não é uma informação conhecida; por este motivo utilizamos a variável latente $z_i=j$. Como em uma mitura podemos ter $k$ componentes, então a variável $z_i$ precisa assumir $k$ diferentes valores, um para cada componente. Logo, $z_i$ segue uma distribuição multinomial:
+Variáveis latente são variáveis que não são diretamente observadas, mas são inferidas através das variáveis observadas. Variáveis latente geralmente descrevem alguma característica subjacente do sistema sendo investigado.
 
-$$
-X_{i}\left|Z_{i} \sim \mathcal{N}\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.
-$$
+Nas distribuições de mistura a variável latente é usada para indicar de qual distribuição a observação se origina e explorada como um instrumento para facilitar as estimações. Através de um argumento de desmarginalização, é possível assossiar uma variável aleatória $X$ de uma mistura de $k$ distribuições à uma outra variável aleatória $Z_i$ tal que:
+
+$$ X_{i}\left|Z_{i} \sim \mathcal{N}\left(x | \theta_{z}\right), \qquad Z_{i} \sim \mathcal{M}_{k}\left(1 ; p_{1}, \ldots, p_{k}\right)\right.$$
+
+onde $\mathcal{M}_{k}(1 ; p_{1}, \ldots, p_{k})$ denota uma distribuição multinomial com k modalidades e uma única observação. Essa variável auxiliar identifica qual compenente a observação $x_i$ pertence.
+
+
 
 A probabilidade marginal da observação $x_i$ vir de um modelo de mistura k pode ser escrito como:
 
-$$
-P\left(X_{i}=x\right)=\sum_{j=1}^{k} P\left(Z_{i}=j\right) P\left(X_{i}=x | Z_{i}=j\right)
-$$
+$$ P\left(X_{i}=x\right)=\sum_{j=1}^{k} P\left(Z_{i}=j\right) P\left(X_{i}=x | Z_{i}=j\right) $$
 
 onde $Z_{i} \in\{1, \ldots, k\}$ é a variável latente que determina de qual componente da mistura $x_i$ foi amostrado e $P\left(Z_{i}=j\right) = p_j$ é a probabilidade de $x_i$ pertencer ao k-ésimo componente da mistura.
 
