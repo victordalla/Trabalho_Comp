@@ -32,7 +32,8 @@ header-includes:
 knitr::opts_chunk$set(
   echo = FALSE, message = FALSE, warning = FALSE,
   # engine.path = c(r = '', pyton = ''), 
-  tidy = "formatR", tidy.opts = c(width.cutoff = 60), #tidy = "styler", 
+  #tidy = "formatR", 
+  tidy.opts = c(width.cutoff = 60), #tidy = "styler", 
   fig.align = "center", fig.height = 5, fig.width = 7
   )
 options(
@@ -342,7 +343,9 @@ ggplot(grid, aes(x = mu1, y = mu2, z = log_lik)) +
 
 # Conclusão
 
+Os resultados da simulação mostram que a utilização do algoritmo EM para mistura gaussiana é muito influenciado pelo valor inicial, pois dependendo dele, a estimativa do algoritmo acaba caindo em um máximo local ou ponto de cela. Logo, uma maneira de contorná-lo é iniciar com valores próximos do que se espera ser o máximo global (utilizando informações à priori e análises estatísticas), testando o algoritmo para uma variedade de valores iniciais e comparar a verossimilhança de cada estimação. 
 
+Alem disso no caso de mistura gaussiana de duas componentes observa-se que para pontos inicias na reta identidade o algoritmo converge para um ponto de cela.
 
 # Referências
 
